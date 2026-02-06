@@ -26,8 +26,10 @@ export default function Shorten() {
   };
 
   const handleGenerate = async () => {
-    if (!originalUrl || !customText)
-      return alert("⚠️ Please fill in both fields!");
+    if (!originalUrl || !customText) {
+      alert("⚠️ Please fill in both fields!");
+      return;
+    }
 
     try {
       const res = await fetch("/api/generate", {
@@ -37,13 +39,20 @@ export default function Shorten() {
       });
 
       const data = await res.json();
+
       if (data.success) {
         const final = `${process.env.NEXT_PUBLIC_HOST}/${customText}`;
         setResultUrl(final);
         saveToHistory({ originalUrl, shortUrl: final });
+
+        // ✅ SUCCESS ALERT ADDED HERE
+        alert(`✅ Short link generated successfully!\n${final}`);
+
         setOriginalUrl("");
         setCustomText("");
-      } else alert(data.message);
+      } else {
+        alert(data.message || "❌ Failed to generate short link");
+      }
     } catch (error) {
       alert("Something went wrong ❌");
     }
@@ -95,7 +104,9 @@ export default function Shorten() {
 
         {resultUrl && (
           <div className="mt-8 p-6 bg-white/90 rounded-2xl text-center shadow-xl border border-purple-300 animate-fade-in space-y-4 transition-all duration-300">
-            <p className="text-gray-700 text-lg font-semibold">Your Short URL:</p>
+            <p className="text-gray-700 text-lg font-semibold">
+              Your Short URL:
+            </p>
             <div className="flex flex-col items-center gap-4">
               <Link
                 href={resultUrl}
@@ -104,6 +115,7 @@ export default function Shorten() {
               >
                 {resultUrl}
               </Link>
+
               <button
                 onClick={copyToClipboard}
                 className="px-6 py-2 bg-purple-600 text-white rounded-xl shadow-md hover:bg-purple-700 transition-all active:scale-95"
@@ -131,6 +143,7 @@ export default function Shorten() {
                   <p className="text-gray-700 truncate max-w-[250px]">
                     {item.originalUrl}
                   </p>
+
                   <Link
                     href={item.shortUrl}
                     target="_blank"
@@ -139,6 +152,7 @@ export default function Shorten() {
                     {item.shortUrl}
                   </Link>
                 </div>
+
                 <button
                   onClick={() => deleteFromHistory(index)}
                   className="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 active:scale-95 transition-all"
@@ -152,7 +166,10 @@ export default function Shorten() {
       )}
 
       <footer className="mt-12 text-gray-700 text-sm opacity-80 text-center">
-        Made with ❤️ by <span className="font-semibold text-purple-700">Ashvin Lohana</span>
+        Made with ❤️ by{" "}
+        <span className="font-semibold text-purple-700">
+          Ashvin Lohana
+        </span>
       </footer>
     </main>
   );
