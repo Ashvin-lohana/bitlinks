@@ -134,7 +134,7 @@ export default function Home() {
                 <li><Link href="/generate" className="text-white/70 hover:text-yellow-300 transition-colors">Shorten URL</Link></li>
                 <li><Link href="/features" className="text-white/70 hover:text-yellow-300 transition-colors">Features</Link></li>
                 <li><Link href="/pricing" className="text-white/70 hover:text-yellow-300 transition-colors">Pricing</Link></li>
-                <li><Link href="/api" className="text-white/70 hover:text-yellow-300 transition-colors">API</Link></li>
+                <li><Link href="/api-docs" className="text-white/70 hover:text-yellow-300 transition-colors">API</Link></li>
               </ul>
             </div>
             
