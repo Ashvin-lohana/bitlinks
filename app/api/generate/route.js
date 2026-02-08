@@ -6,7 +6,7 @@ if (!uri) {
   throw new Error("MONGODB_URI is not defined in environment variables");
 }
 
-// prevent multiple connections in dev
+// Global client for development hot reload
 let client;
 let clientPromise;
 
@@ -21,10 +21,19 @@ if (process.env.NODE_ENV === "development") {
   clientPromise = client.connect();
 }
 
-// Named export for POST method
+// Named export for POST
 export async function POST(request) {
   try {
     const body = await request.json();
+
+    // Validate body
+    if (!body.url || !body.shorturl) {
+      return new Response(
+        JSON.stringify({ success: false, message: "URL and shorturl are required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     const client = await clientPromise;
     const db = client.db("bitlinks");
     const collection = db.collection("url");
@@ -33,7 +42,7 @@ export async function POST(request) {
     const existing = await collection.findOne({ shorturl: body.shorturl });
     if (existing) {
       return new Response(
-        JSON.stringify({ success: false, error: true, message: "URL already exists!" }),
+        JSON.stringify({ success: false, message: "Short URL already exists" }),
         { status: 409, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -42,16 +51,17 @@ export async function POST(request) {
     await collection.insertOne({
       url: body.url,
       shorturl: body.shorturl,
+      createdAt: new Date(),
     });
 
     return new Response(
-      JSON.stringify({ success: true, error: false, message: "URL Generated Successfully" }),
+      JSON.stringify({ success: true, message: "URL Generated Successfully" }),
       { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("API Error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: true, message: "Something went wrong!" }),
+      JSON.stringify({ success: false, message: "Internal Server Error" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
