@@ -1,24 +1,22 @@
-import { MongoClient } from "mongodb"
+import clientPromise from "@/lib/mongodb"
 
-const uri = process.env.MONGODB_URI
+export async function POST(request) {
 
-if (!uri) {
-  throw new Error("MONGODB_URI is not defined in environment variables")
-}
+    const body = await request.json() 
+    const client = await clientPromise;
+    const db = client.db("bitlinks")
+    const collection = db.collection("url")
 
-let client
-let clientPromise
+    // Check if the short url exists
+    const doc = await collection.findOne({shorturl: body.shorturl})
+    if(doc){
+        return Response.json({success: false, error: true,  message: 'URL already exists!' })
+    }
 
-if (process.env.NODE_ENV === "development") {
-  // prevent multiple connections in dev (hot reload)
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri)
-    global._mongoClientPromise = client.connect()
+    const result = await collection.insertOne({
+        url: body.url,
+        shorturl: body.shorturl
+    })
+
+    return Response.json({success: true, error: false,  message: 'URL Generated Successfully' })
   }
-  clientPromise = global._mongoClientPromise
-} else {
-  client = new MongoClient(uri)
-  clientPromise = client.connect()
-}
-
-export default clientPromise
